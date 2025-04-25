@@ -111,14 +111,17 @@ def create_thread(request, book_pk):
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def thread_detail(request, thread_pk):
-    thread = Thread.objects.annotate(num_of_comments=Count('comment')).get(pk=thread_pk)
+    thread = Thread.objects.annotate(num_of_comments=Count('comments')).get(pk=thread_pk)
     if request.method == 'GET':
         serializer = ThreadSerializer(thread)
         return Response(serializer.data)
     
     elif request.method == 'PUT':
-        pass
-    
+        serializer = ThreadSerializer(thread, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data)
+
     elif request.method == 'DELETE':
         thread.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -126,7 +129,11 @@ def thread_detail(request, thread_pk):
 
 @api_view(['POST'])
 def create_comment(request, thread_pk):
-    pass
+    thread = Thread.objects.get(pk=thread_pk)
+    serializer = CommentSerializer(data=request.data)
+    if serializer.is_valid(raise_exception=True):
+        serializer.save(thread=thread)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -137,7 +144,10 @@ def comment_detail(request, comment_pk):
         return Response(serializer.data)
     
     elif request.method == 'PUT':
-        pass
+        serializer = CommentSerializer(comment, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data)
     
     elif request.method == 'DELETE':
         comment.delete()
