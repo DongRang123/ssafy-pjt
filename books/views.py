@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
-from .models import Book, Thread
+from django.db.models import Count
+
+from .models import Book, Thread, Comment
 from .forms import BookForm,ThreadForm
 from .utils import (
     process_wikipedia_info,
@@ -8,8 +10,15 @@ from .utils import (
     create_tts_audio,
     create_ai_image,
 )
+from .serializers import ThreadListSerializer, ThreadSerializer, CommentSerializer
+
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods, require_POST
+
+
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework import status
 
 
 def index(request):
@@ -83,70 +92,53 @@ def delete(request, pk):
         book.delete()
         return redirect("books:index")
 
-@login_required
-@require_http_methods(['GET', 'POST'])
-def thread_create(request, pk):
-    book = Book.objects.get(pk=pk)
-    if request.method == "POST":
-        form = ThreadForm(request.POST)
-        if form.is_valid():
-            thread = form.save(commit=False)
-            thread.book = book
-            thread.user = request.user
-            thread.cover_img = create_ai_image(thread.content)
-            thread.save()
-            return redirect("books:detail", pk=pk)
-    else:
-        form = ThreadForm()
-    context={
-        'form': form,
-        'pk': pk,
-    }
-    return render(request,"books/thread_create.html",context)
 
-# @login_required
-@require_http_methods(['GET'])
-def thread_detail(request, pk):
-    thread= Thread.objects.get(pk=pk)
-    context={
-        'thread': thread,
-    }
-    return render(request,'books/thread_detail.html', context)
+@api_view(['GET'])
+def thread_list(request):
+    threads = Thread.objects.all()
+    serializer = ThreadListSerializer(threads, many=True)
+    return Response(serializer.data)
 
 
-@login_required
-@require_http_methods(['GET', 'POST'])
-def thread_update(request, pk):
-    thread = Thread.objects.get(pk=pk)
-    if request.user == thread.user:
-        if request.method == "POST":
-            form = ThreadForm(request.POST, request.FILES, instance=thread)
-            if form.is_valid():
-                form.save()
-                return redirect("books:detail", thread.book.pk)
-        else:
-            form = ThreadForm(instance=thread)
-    else:
-        return redirect('books:thread_detail', thread.pk)
-    context = {
-        "form": form,
-        "thread": thread,
-    }
-    return render(request, "books/thread_update.html", context)
+@api_view(['POST'])
+def create_thread(request, book_pk):
+    book = Book.objects.get(pk=book_pk)
+    serializer = ThreadSerializer(data=request.data)
+    if serializer.is_valid(raise_exception=True):
+        serializer.save(book=book)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-@login_required
-@require_POST
-def thread_delete(request, pk):
-    thread = Thread.objects.get(pk=pk)
-    if request.user == thread.user:
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def thread_detail(request, thread_pk):
+    thread = Thread.objects.annotate(num_of_comments=Count('comment')).get(pk=thread_pk)
+    if request.method == 'GET':
+        serializer = ThreadSerializer(thread)
+        return Response(serializer.data)
+    
+    elif request.method == 'PUT':
+        pass
+    
+    elif request.method == 'DELETE':
         thread.delete()
-    return redirect("books:detail", thread.book.pk)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-@login_required
-def thread_likes(request,pk):
-    thread = Thread.objects.get(pk=pk)
-    if request.user in thread.like_users.all():
-        thread.like_users.remove(request.user)
-    else:
-        thread.like_users.add(request.user)
-    return redirect('books:thread_detail',pk)
+
+@api_view(['POST'])
+def create_comment(request, thread_pk):
+    pass
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def comment_detail(request, comment_pk):
+    comment = Comment.objects.get(pk=comment_pk)
+    if request.method == 'GET':
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data)
+    
+    elif request.method == 'PUT':
+        pass
+    
+    elif request.method == 'DELETE':
+        comment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

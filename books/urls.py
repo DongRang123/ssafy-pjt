@@ -11,9 +11,10 @@ urlpatterns = [
     path("<int:pk>/", views.detail, name="detail"),
     path("<int:pk>/update/", views.update, name="update"),
     path("<int:pk>/delete/", views.delete, name="delete"),
-    path("<int:pk>/thread_create/",views.thread_create, name="thread_create"),
-    path('<int:pk>/thread_detail/',views.thread_detail,name='thread_detail'),
-    path("<int:pk>/thread_update/",views.thread_update, name='thread_update'),
-    path("<int:pk>/thread_delete/",views.thread_delete,name="thread_delete"),
-    path("<int:pk>/thread_likes/",views.thread_likes,name="thread_likes")
+    
+    path("threads/", views.thread_list),
+    path("<int:book_pk>/threads/", views.create_thread),
+    path("threads/<int:thread_pk>/", views.thread_detail),
+    path("threads/<int:thread_pk>/comments/", views.create_comment),
+    path("comments/<int:comment_pk>/", views.comment_detail),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
