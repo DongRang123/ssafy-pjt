@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>쓰레드 작성 페이지</h1>
+  <form action="{% url "books:thread_create" pk %}" method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" class="btn btn-outline-success mb-2" value="전송"><br>
+    <a href="{% url "books:detail" pk %}" class="btn btn-outline-danger">취소</a>
+  </form>
+{% endblock content %}

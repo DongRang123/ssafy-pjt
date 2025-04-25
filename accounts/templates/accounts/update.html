@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<h1>회원정보 수정</h1>
+<form action="{% url "accounts:update" %}" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p}}
+    
+    <p>
+        <strong>비밀번호 변경:</strong>
+        <a href="{% url 'change_password' user.pk %}">비밀번호 변경하기</a>
+    </p>
+    
+    <input type="submit" class="btn btn-success" value="Submit">
+</form>
+
+{% endblock content %}

@@ -1,0 +1,32 @@
+# 텍스트 파일은 자동 감지해서 줄바꿈 처리
+* text=auto
+
+# 파이썬 코드 파일은 LF로 통일
+*.py text eol=lf
+
+# HTML 템플릿도 LF로 통일
+*.html text eol=lf
+
+# CSS/JS 파일도 LF로 통일
+*.css text eol=lf
+*.js text eol=lf
+
+# Markdown, txt 같은 문서 파일도 LF로 통일
+*.md text eol=lf
+*.txt text eol=lf
+
+# JSON, YAML, 기타 설정 파일
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# 윈도우 배치 파일은 CRLF 유지
+*.bat text eol=crlf
+
+# 바이너리 파일은 텍스트 처리 제외
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary

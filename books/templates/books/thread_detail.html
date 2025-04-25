@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ thread.title }}</h1>
+    <img src="{{thread.cover_img}}" alt="이미지 로딩 실패" width="550">
+    <div class="d-flex align-items-center gap-4 mb-3">
+      <div>
+        
+        <strong>도서:</strong>
+        <a href="{% url 'books:detail' thread.book.pk %}" class="ms-1">
+          {{ thread.book.title }}
+        </a>
+      </div>
+    
+      <div>
+        <strong>작성자:</strong>
+        <a href="{% url 'accounts:profile' thread.user.pk %}" class="ms-1">
+          {{ thread.user.username }}
+        </a>
+      </div>
+    
+      <div>
+        <strong>독서일:</strong>
+        <span class="ms-1">{{ thread.reading_date }}</span>
+      </div>
+    </div>
+    
+    <hr>
+
+    <p>{{ thread.content }}</p>
+    <p>좋아요 수 : {{thread.like_users.all|length}}    </p>
+    <form action="{% url "books:thread_likes" thread.pk %}" method="POST">
+      {% csrf_token %}
+      {% if request.user in thread.like_users.all %}
+     <input type="submit" class="btn btn-secondary" value="좋아요 취소">
+    {% else %}
+    <input type="submit" class="btn btn-secondary" value="좋아요">
+     {% endif %}  
+  </form>
+    
+    {% if request.user == thread.user %}
+    <hr>
+
+    <a href="{% url "books:thread_update" thread.pk %}" class="btn btn-success mb-2">수정</a>
+
+    <form action="{% url "books:thread_delete" thread.pk %}" method="POST">
+        {% csrf_token %}
+       <input type="submit" class="btn btn-secondary" value="삭제">  
+    </form>
+        
+    {% endif %}
+
+{% endblock content %}
